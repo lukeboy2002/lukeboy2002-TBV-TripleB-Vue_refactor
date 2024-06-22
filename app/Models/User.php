@@ -41,6 +41,15 @@ class User extends Authenticatable implements MustVerifyEmail
         'two_factor_secret',
     ];
 
+    protected function defaultProfilePhotoUrl()
+    {
+        $username = trim(collect(explode(' ', $this->username))->map(function ($segment) {
+            return mb_substr($segment, 0, 1);
+        })->join(' '));
+
+        return 'https://ui-avatars.com/api/?name='.urlencode($username).'&color=F97316&background=030712';
+    }
+
     /**
      * The accessors to append to the model's array form.
      *
