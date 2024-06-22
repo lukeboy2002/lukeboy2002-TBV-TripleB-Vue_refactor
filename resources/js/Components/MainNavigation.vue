@@ -1,19 +1,38 @@
 <script setup lang="ts">
-import ApplicationMark from "@/Components/ApplicationMark.vue";
 import NavLink from "@/Components/NavLink.vue";
 import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink.vue";
-
-import {Link, router} from "@inertiajs/vue3";
-import {ref} from "vue";
 import ThemeSwitcher from "@/Components/ThemeSwitcher.vue";
+
+import {Link, router, usePage} from "@inertiajs/vue3";
+import {ref} from "vue";
+
 
 const showingNavigationDropdown = ref(false);
 
 const logout = () => {
     router.post(route('logout'));
 };
+
+const menu = [
+    {
+        name: "Home",
+        url: route('home'),
+        route: 'home',
+    },
+    {
+        name: "Posts",
+        url: route('posts.index'),
+        route: 'posts.index',
+    },
+    {
+        name: "Dashboard",
+        url: route('dashboard'),
+        route: 'dashboard',
+        when: () => usePage().props.auth.user,
+    },
+];
 </script>
 
 <template>
@@ -23,59 +42,81 @@ const logout = () => {
             <div class="flex justify-between h-16">
                 <div class="flex">
                     <!-- Navigation Links -->
-                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                        <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                            Dashboard
-                        </NavLink>
+                    <div class="hidden space-x-4 sm:-my-px sm:flex">
+                        <template v-for="item in menu" :key="item.name">
+                            <NavLink
+                                v-if="item.when ? item.when() : true"
+                                :href="item.url"
+                                :active="route().current(item.route)">
+                                {{ item.name }}
+                            </NavLink>
+                        </template>
                     </div>
                 </div>
 
                 <div class="hidden sm:flex sm:space-x-4 sm:items-center sm:ms-6">
+                    <div v-if="$page.props.auth.user" class="ms-3 relative">
                     <!-- Settings Dropdown -->
-                    <div class="ms-3 relative">
-                        <Dropdown align="right" width="48">
-                            <template #trigger>
-                                <button v-if="$page.props.jetstream.managesProfilePhotos" class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
-                                    <img class="h-8 w-8 rounded-full object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.username">
-                                </button>
-
-                                <span v-else class="inline-flex rounded-md">
-                                    <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
-                                        {{ $page.props.auth.user.username }}
-
-                                        <svg class="ms-2 -me-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                                        </svg>
+                        <div class="ms-3 relative">
+                            <Dropdown align="right" width="48">
+                                <template #trigger>
+                                    <button v-if="$page.props.jetstream.managesProfilePhotos" class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
+                                        <img class="h-8 w-8 rounded-full object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.username">
                                     </button>
-                                </span>
-                            </template>
 
-                            <template #content>
-                                <!-- Account Management -->
-                                <div class="block px-4 py-2 text-xs text-gray-400">
-                                    Manage Account
-                                </div>
+                                    <span v-else class="inline-flex rounded-md">
+                                        <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
+                                            {{ $page.props.auth.user.username }}
 
-                                <DropdownLink :href="route('profile.show')">
-                                    Profile
-                                </DropdownLink>
+                                            <svg class="ms-2 -me-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                            </svg>
+                                        </button>
+                                    </span>
+                                </template>
 
-                                <div class="border-t border-gray-200" />
+                                <template #content>
+                                    <!-- Account Management -->
+                                    <div class="block px-4 py-2 text-xs text-gray-400">
+                                        Manage Account
+                                    </div>
 
-                                <!-- Authentication -->
-                                <form @submit.prevent="logout">
-                                    <DropdownLink as="button">
-                                        Log Out
+                                    <DropdownLink :href="route('profile.show')">
+                                        Profile
                                     </DropdownLink>
-                                </form>
-                            </template>
-                        </Dropdown>
+
+                                    <div class="border-t border-gray-200" />
+
+                                    <!-- Authentication -->
+                                    <form @submit.prevent="logout">
+                                        <DropdownLink as="button">
+                                            Log Out
+                                        </DropdownLink>
+                                    </form>
+                                </template>
+                            </Dropdown>
+                        </div>
+                    </div>
+                    <div v-else>
+                        <Link
+                            :href="route('login')"
+                            class="text-sm px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
+                        >
+                            Log in
+                        </Link>
+
+                        <Link
+                            :href="route('register')"
+                            class="text-sm px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
+                        >
+                            Register
+                        </Link>
                     </div>
                     <ThemeSwitcher />
                 </div>
 
                 <!-- Hamburger -->
-                <div class="-me-2 flex items-center sm:hidden">
+                <div class="-me-2 flex items-center space-x-2 sm:hidden">
                     <button class="inline-flex items-center justify-center p-2 rounded-md text-orange-500 hover:text-orange-500 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:bg-gray-200 dark:focus:bg-gray-800 focus:text-orange-500 transition duration-150 ease-in-out" @click="showingNavigationDropdown = ! showingNavigationDropdown">
                         <svg
                             class="h-6 w-6"
@@ -99,6 +140,7 @@ const logout = () => {
                             />
                         </svg>
                     </button>
+                    <ThemeSwitcher />
                 </div>
             </div>
         </div>
@@ -106,39 +148,57 @@ const logout = () => {
         <!-- Responsive Navigation Menu -->
         <div :class="{'block': showingNavigationDropdown, 'hidden': ! showingNavigationDropdown}" class="sm:hidden">
             <div class="pt-2 pb-3 space-y-1">
-                <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                    Dashboard
-                </ResponsiveNavLink>
+                <template v-for="item in menu" :key="item.name">
+                    <ResponsiveNavLink
+                        v-if="item.when ? item.when() : true"
+                        :href="item.url"
+                        :active="route().current(item.route)">
+                        {{ item.name }}
+                    </ResponsiveNavLink>
+                </template>
             </div>
 
             <!-- Responsive Settings Options -->
             <div class="pt-4 pb-1 border-t border-gray-200">
-                <div class="flex items-center px-4">
-                    <div v-if="$page.props.jetstream.managesProfilePhotos" class="shrink-0 me-3">
-                        <img class="h-10 w-10 rounded-full object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.username">
+                <div v-if="$page.props.auth.user">
+                    <div class="flex items-center px-4">
+                        <div v-if="$page.props.jetstream.managesProfilePhotos" class="shrink-0 me-3">
+                            <img class="h-10 w-10 rounded-full object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.username">
+                        </div>
+
+                        <div>
+                            <div class="font-medium text-base text-gray-800">
+                                {{ $page.props.auth.user.username }}
+                            </div>
+                            <div class="font-medium text-sm text-gray-500">
+                                {{ $page.props.auth.user.email }}
+                            </div>
+                        </div>
                     </div>
 
-                    <div>
-                        <div class="font-medium text-base text-gray-800">
-                            {{ $page.props.auth.user.username }}
-                        </div>
-                        <div class="font-medium text-sm text-gray-500">
-                            {{ $page.props.auth.user.email }}
-                        </div>
+                    <div class="mt-3 space-y-1">
+
+                        <ResponsiveNavLink :href="route('profile.show')" :active="route().current('profile.show')">
+                            Profile
+                        </ResponsiveNavLink>
+
+                        <!-- Authentication -->
+                        <form method="POST" @submit.prevent="logout">
+                            <ResponsiveNavLink as="button">
+                                Log Out
+                            </ResponsiveNavLink>
+                        </form>
                     </div>
                 </div>
-
-                <div class="mt-3 space-y-1">
-                    <ResponsiveNavLink :href="route('profile.show')" :active="route().current('profile.show')">
-                        Profile
+                <div v-else class="mt-3 space-y-1">
+                    <ResponsiveNavLink :href="route('login')">
+                        Log in
                     </ResponsiveNavLink>
 
-                    <!-- Authentication -->
-                    <form method="POST" @submit.prevent="logout">
-                        <ResponsiveNavLink as="button">
-                            Log Out
-                        </ResponsiveNavLink>
-                    </form>
+                    <ResponsiveNavLink
+                        :href="route('register')">
+                        Register
+                    </ResponsiveNavLink>
                 </div>
             </div>
         </div>
