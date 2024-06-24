@@ -1,6 +1,6 @@
 <template>
     <div class="flex items-center justify-between border-t border-orange-500/30 py-3">
-        <div class="flex flex-1 justify-between sm:hidden">
+        <div class="flex flex-1 justify-between lg:hidden">
             <NavLink :href="previousUrl"
                      :only="only">
                 Previous
@@ -10,7 +10,7 @@
                 Next
             </NavLink>
         </div>
-        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+        <div class="hidden lg:flex lg:flex-1 lg:items-center lg:justify-between">
             <div>
                 <p class="text-sm text-gray-900 dark:text-white">
                     Showing
